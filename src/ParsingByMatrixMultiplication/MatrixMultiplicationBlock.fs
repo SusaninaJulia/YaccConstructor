@@ -81,7 +81,8 @@ type MatrixBatchedMultiplyModule(worker : Worker) =
             use dC = worker.Malloc(Cs.[i])
             blas.Sgemm(trans, trans, n, n, n, dalpha.Ptr, dB.Ptr, n, dA.Ptr, n, dbeta.Ptr, dC.Ptr, n)
             dC.Gather()] |> Array.ofList
-    
+
+        
     member this.gemmBatchedCublasMult(arrA : float32[]) (arrB : float32[]) (arrC : float32[]) n batchCount =
         let trans = Alea.cuBLAS.Operation.N
         use dalpha = worker.Malloc([|0.0f|])
@@ -109,6 +110,26 @@ type MatrixManagedCudaModule() =
         dB.CopyToDevice(B)
         dC.CopyToDevice(C)
         handle.Gemm(trans, trans, n, n, n, alf, dA, n, dB, n, bet, dC, n)
+        dC.CopyToHost(C)
+        dA.Dispose()
+        dB.Dispose()
+        dC.Dispose()
+
+    member this.gemmMultByTask (A : float32[][]) (B : float32[][]) (C : float32[][]) (n : int) = 
+        for i = 0 to A.Length - 1 do
+            this.gemmMult A.[i] B.[i] C.[i] n
+
+
+    member this.gemmSumm (A : float32[]) (C : float32[]) (n : int) =
+        let handle = new CudaBlas()
+        let B = Array.init (n * n) (fun i -> if i % (n + 1) = 0 then 1 else 0) 
+        let dA  = new CudaDeviceVariable<float32>(new SizeT(n * n))
+        let dB  = new CudaDeviceVariable<float32>(new SizeT(n * n))
+        let dC  = new CudaDeviceVariable<float32>(new SizeT(n * n))
+        dA.CopyToDevice(A)
+        dB.CopyToDevice(B)
+        dC.CopyToDevice(C)
+        handle.Gemm(trans, trans, n, n, n, 0.0f, dA, n, dB, n, bet, dC, n)
         dC.CopyToHost(C)
         dA.Dispose()
         dB.Dispose()

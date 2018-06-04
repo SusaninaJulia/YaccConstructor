@@ -44,18 +44,18 @@ let rec toArray this =
 let ofArray (arr : array<'T>) = 
     let n = arr.Length
     assert (n % 4 = 0)
-    let toSub = Array.init (n / 4) (fun i -> El(arr.[i * 4..i * 4 + 3]))
+    let toSub = Array.init (n / 4) (fun i -> El(arr.[i * 16..i * 16 + 3]))
     let rec wrap (toSub : array<SubMatrix<'T>>) n = 
         assert (n % 4 = 0)
         match n with
         | 4 -> Sub(toSub.[0], toSub.[1], toSub.[2], toSub.[3])
-        | _ -> wrap (Array.init (n / 4) (fun i -> Sub(toSub.[i * 4], toSub.[i * 4 + 1], toSub.[i * 4 + 2], toSub.[i * 4 + 3]))) (n / 4)
+        | _ -> wrap (Array.init (n / 4) (fun i -> Sub(toSub.[i * 16], toSub.[i * 16 + 1], toSub.[i * 16 + 2], toSub.[i * 16 + 3]))) (n / 16)
     wrap toSub (n / 4)
 
 let rec createSubMatrix count (sub : SubMatrix<'T>) = // count -- number of elements
-            match count with
-            | 1 -> sub
-            | _ -> createSubMatrix (count / 4) (Sub(sub, sub, sub, sub))
+    match count with
+    | 1 -> sub
+    | _ -> createSubMatrix (count / 4) (Sub(sub, sub, sub, sub))
 
 type SubMatrix<'T> with
 

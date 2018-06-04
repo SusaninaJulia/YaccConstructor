@@ -1,0 +1,5 @@
+[<Start>]
+yard_s_1 : s s
+s : s yard_s_1
+s : s s
+s : B

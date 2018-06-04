@@ -4,6 +4,8 @@ open GrammarBlock
 open MatrixMultiplicationBlock
 
 open System
+open System.Threading
+open System.Threading.Tasks
 open System.Collections.Generic
 
 open Alea
@@ -67,14 +69,17 @@ type TPMatrices(gr : BooleanRulesHolder, n) =
      member this.setAllSubs(b3 : Bounds, arrs : array<_>) = 
         let len = b3.getLength
         let topX, topY = b3.getTop 
+        //Array.Parallel.iteri (fun i el -> this.setSub(ntsPairs.[i], len, topX, topY, el)) arrs
         for i = 0 to arrs.Length - 1 do
             this.setSub(ntsPairs.[i], len, topX, topY, arrs.[i])
+
 
      member this.setAllSubsByTask (task : array<_>) (Cs : array<_>) = 
         let taskLen = task.Length
         let lenForTask = Cs.Length / taskLen
         let f (a, b, c) = Bounds(c)
-        for i = 0 to taskLen - 1 do
+        //Array.Parallel.iteri (fun i el -> this.setAllSubs((f task.[i]), Cs.[i * lenForTask .. (i + 1) * lenForTask - 1])) task
+        for i = 0 to task.Length - 1 do
             this.setAllSubs((f task.[i]), Cs.[i * lenForTask .. (i + 1) * lenForTask - 1])
 
      member this.simpleMultiplication(N1, b1 : Bounds, N2, b2 : Bounds, b3 : Bounds) = 
@@ -120,9 +125,13 @@ type TPMatrices(gr : BooleanRulesHolder, n) =
         for i = 0 to task.Length - 1 do
             let (b1, b2, b3) = toBounds(task.[i])
             n <- b1.getLength
-            As.Add(this.getAllSubs(b1))
-            Bs.Add(this.getAllSubs(b2)) 
-            Cs.Add(this.getAllSubs(b3))
+            let fst = Action( fun () -> As.Add(this.getAllSubs(b1)) )
+            let snd = Action( fun () -> Bs.Add(this.getAllSubs(b2))  )
+            let thd = Action( fun () -> Cs.Add(this.getAllSubs(b2))  )
+            Parallel.Invoke(fst, snd, thd)
+//            As.Add(this.getAllSubs(b1))
+//            Bs.Add(this.getAllSubs(b2)) 
+//            Cs.Add(this.getAllSubs(b3))
         let newCs = Array.concat Cs
         multmod2.gemmBatchedMult (Array.concat As) (Array.concat Bs) newCs n
         this.setAllSubsByTask task newCs
@@ -138,7 +147,7 @@ type TPMatrices(gr : BooleanRulesHolder, n) =
         let len = Bounds(b1).getLength
         if  len >= 16
         then this.gemmMultiplicationByTask(task)
-        elif 2 >= len
+        elif 8 >= len
         then this.allSimpleMultiplicationByTask(task, true)
         else this.allSimpleMultiplicationByTask(task, false)
      

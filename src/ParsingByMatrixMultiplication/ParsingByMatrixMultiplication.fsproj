@@ -50,11 +50,12 @@
   <ItemGroup>
     <Compile Include="GrammarBlock.fs" />
     <Compile Include="MatrixMultiplicationBlock.fs" />
+    <Compile Include="GrammarPerformanceBlock.fs" />
     <Compile Include="MatrixPerfomanceBlock.fs" />
-    <Compile Include="SubmatrixBlock.fs" />
     <Compile Include="Okhotin.fs" />
     <Compile Include="Modified.fs" />
-    <Compile Include="Modifiedv2.fs" />
+    <Compile Include="SubmatrixBlock.fs" />
+    <Compile Include="TreesBlock.fs" />
     <Compile Include="TestBlock.fs" />
     <None Include="App.config" />
   </ItemGroup>

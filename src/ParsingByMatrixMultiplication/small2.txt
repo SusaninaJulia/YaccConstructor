@@ -1,0 +1,6 @@
+[<Start>]
+s : g b
+g : G
+b : new1 new2
+new1 : A
+new2 : C
